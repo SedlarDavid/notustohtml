@@ -2,22 +2,22 @@ library notustohtml;
 
 import 'dart:convert';
 
+import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:notus/notus.dart';
-import 'package:quill_delta/quill_delta.dart';
 
-class NotusHtmlCodec extends Codec<Delta, String> {
+class NotusHtmlCodec extends Codec<quill.Delta, String> {
   const NotusHtmlCodec();
 
   @override
-  Converter<String, Delta> get decoder => _NotusHtmlDecoder();
+  Converter<String, quill.Delta> get decoder => _NotusHtmlDecoder();
 
   @override
-  Converter<Delta, String> get encoder => _NotusHtmlEncoder();
+  Converter<quill.Delta, String> get encoder => _NotusHtmlEncoder();
 }
 
-class _NotusHtmlEncoder extends Converter<Delta, String> {
+class _NotusHtmlEncoder extends Converter<quill.Delta, String> {
   static const kBold = 'strong';
   static const kItalic = 'em';
   static final kSimpleBlocks = <NotusAttribute, String>{
@@ -27,8 +27,8 @@ class _NotusHtmlEncoder extends Converter<Delta, String> {
   };
 
   @override
-  String convert(Delta input) {
-    final iterator = DeltaIterator(input);
+  String convert(quill.Delta input) {
+    final iterator = quill.DeltaIterator(input);
     final buffer = StringBuffer();
     final lineBuffer = StringBuffer();
     NotusAttribute<String> currentBlockStyle;
@@ -95,25 +95,25 @@ class _NotusHtmlEncoder extends Converter<Delta, String> {
     }
 
     while (iterator.hasNext) {
-      Operation op = iterator.next();
+      quill.Operation op = iterator.next();
       bool hr = false;
       String source;
       if (op.data is BlockEmbed) {
         final embed = op.data as BlockEmbed;
         if (embed.type == "hr") {
-          op = Operation.insert("");
+          op = quill.Operation.insert("");
           hr = true;
         } else if (embed.type == "image") {
-          op = Operation.insert("");
+          op = quill.Operation.insert("");
           source = embed.data["source"];
         }
       } else if (op.data is Map) {
         final map = op.data as Map;
         if (map["_type"] == "hr") {
-          op = Operation.insert("");
+          op = quill.Operation.insert("");
           hr = true;
         } else if (map["_type"] == "image") {
-          op = Operation.insert("");
+          op = quill.Operation.insert("");
           source = map["source"];
         }
       }
@@ -278,10 +278,10 @@ class _NotusHtmlEncoder extends Converter<Delta, String> {
   }
 }
 
-class _NotusHtmlDecoder extends Converter<String, Delta> {
+class _NotusHtmlDecoder extends Converter<String, quill.Delta> {
   @override
-  Delta convert(String input) {
-    Delta delta = Delta();
+  quill.Delta convert(String input) {
+    quill.Delta delta = quill.Delta();
     Document html = parse(input);
 
     html.body.nodes.asMap().forEach((index, node) {
@@ -296,7 +296,7 @@ class _NotusHtmlDecoder extends Converter<String, Delta> {
     return delta..insert("\n");
   }
 
-  Delta _parseNode(node, Delta delta, next, {isNewLine, inBlock}) {
+  quill.Delta _parseNode(node, quill.Delta delta, next, {isNewLine, inBlock}) {
     if (node.runtimeType == Element) {
       Element element = node;
       if (element.localName == "ul") {
@@ -341,7 +341,7 @@ class _NotusHtmlDecoder extends Converter<String, Delta> {
     }
   }
 
-  Delta _parseElement(Element element, Delta delta, String type,
+  quill.Delta _parseElement(Element element, quill.Delta delta, String type,
       {Map<String, dynamic> attributes,
       String listType,
       next,
