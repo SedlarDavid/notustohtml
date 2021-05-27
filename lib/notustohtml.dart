@@ -289,7 +289,11 @@ class _NotusHtmlDecoder extends Converter<String, quill.Delta> {
       if (index + 1 < html.body.nodes.length) next = html.body.nodes[index + 1];
       delta = _parseNode(node, delta, next);
     });
-    final text = delta.last.data is String ? delta.last.data as String : '';
+    final text = delta.length == 0
+        ? ''
+        : delta.last.data is String
+            ? delta.last.data as String
+            : '';
     if (text.endsWith("\n")) {
       return delta;
     }
